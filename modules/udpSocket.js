@@ -1,4 +1,5 @@
 const EventEmitter = require('events')
+const globals = require('./config')
 
 module.exports = class UdpSocket extends EventEmitter {
     
@@ -9,21 +10,36 @@ module.exports = class UdpSocket extends EventEmitter {
         let dgram = require('dgram');
         let socket = dgram.createSocket('udp4');
 
-        socket.on('message', (msg, rinfo) => {
-            console.log(`Socket got message from: ${rinfo.address}:${rinfo.port}`);
-            this.emit('message', msg.toString('ascii'))
+        socket.on('message', (msg, info) => {
+
+            if(globals.verbose)
+                console.log(`\n------\n==> SOCKET\n==> MESSAGE: ${msg}\n==> FROM: ${info.address}:${info.port}\n------\n`)
+
+            if(msg && msg.indexOf('ELECTION!') >= 0){
+                this.emit('election', msg.toString('ascii'),info)
+
+            } else if(msg && msg.indexOf('OK') >= 0) {
+                this.emit('ok', msg.toString('ascii'),info)
+
+            } else {
+                this.emit('message', msg.toString('ascii'),info)
+            }
+            
         });
 
+
         socket.on('listening', () => {
+            
             const address = socket.address();
-            console.log(`Socket listening ${address.address}:${address.port}`);
+
+            this.host = address.address;
+
+            this.port = address.port;
+            if(globals.verbose)
+                console.log(`Socket listening ${address.address}:${address.port}`);
         });
 
         socket.bind(PORT)
-
-        this.host = HOST;
-
-        this.port = PORT;
 
         this.socket = socket;
     }
@@ -39,8 +55,11 @@ module.exports = class UdpSocket extends EventEmitter {
     send(msg, host, port){
         let message = new Buffer(msg);
         
+        if(globals.verbose)
+            console.log(`\n------\n==> SOCKET\n==> MESSAGE: ${msg}\n==> SENDING: ${this.host}:${this.port}\n------\n`)
+
         this.socket.send(message, port, host,(err) => {
-            this.socket.close()
+            // this.socket.close()
         });
     }
 }

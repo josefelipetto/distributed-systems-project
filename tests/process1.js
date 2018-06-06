@@ -1,14 +1,22 @@
 var Multicast = require('../modules/multicast');
 var udpSocket = require('../modules/udpSocket')
+var RingElection = require('../modules/ring-election')
 
-// let multicastSocket = new Multicast('224.0.0.1',42280);
+// let udp = new udpSocket()
+let ring = new RingElection(1)
 
-// setInterval(function(){
-//     multicastSocket.send("Eu sou o alpha");
-// },2000);
+ring.callElection()
 
-let udp = new udpSocket('127.0.0.1', 3333)
+// ring.on('leader', (msg) => {
+//     console.log('Leader is ' msg)
+// })
 
-udp.on('message', (msg) => {
-    console.log('Vai fiii: ', msg)
-})
+// setInterval(() => {
+//     console.log(ring.getMembers())
+// }, 2000)
+
+
+// setInterval(() => {
+//     ring.callElection()
+// }, 5000)
+
